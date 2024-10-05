@@ -40,9 +40,10 @@ storeMsg n True = "Linked \"" ++ n ++ "\" to an existing entry."
 storeMsg n False = "Created a new entry for \"" ++ n ++ "\""
 
 showCommands :: String
-showCommands = intercalate "\n" $ zipWith (++) (map buildPrefix ([1 ..] :: [Int])) (map fst actions)
+showCommands = intercalate "\n" $ zipWith labelAction [1 ..] (map fst actions)
   where
-    buildPrefix num = "(" ++ show num ++ ") "
+    labelAction :: Int -> String -> String
+    labelAction num desc = concat ["(", show num, ") ", desc]
 
 run :: SysState -> IO ()
 run st = do
@@ -52,7 +53,7 @@ run st = do
     Nothing -> putStrLn "Not a valid action.\n" >> run st
     Just getCommand -> do
       trans <- transition <$> getCommand
-      let (message, newSt) = Control.Monad.Trans.State.Lazy.runState trans st
+      let (message, newSt) = runState trans st
       putStrLn $ "\n" ++ message ++ "\n"
       run newSt
 
